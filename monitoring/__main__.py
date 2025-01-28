@@ -7,15 +7,15 @@ from .dcgm_monitor import DCGMMonitor
 
 if __name__ == "__main__":
 
-    mon_labels = ConstMonitor({'global':{'mig':'test'}})
+    mon_labels = ConstMonitor({'mig':'test'})
     mon_ipmi = IPMIMonitor(sudo_command='sudo-g5k')
     mon_ipmi.discover()
     mon_smi  = SMIMonitor(sudo_command='sudo-g5k')
-    mon_dcgm = DCGMMonitor(url='http://localhost:9400/metrics"')
+    mon_dcgm = DCGMMonitor(url='http://localhost:9400/metrics')
 
     monitors = [mon_ipmi,mon_smi,mon_dcgm,mon_labels]
 
-    wrapper = MonitorWrapper(monitors=[mon_labels])
+    wrapper = MonitorWrapper(monitors=monitors)
     try:
         wrapper.start_monitoring()
     except KeyboardInterrupt:

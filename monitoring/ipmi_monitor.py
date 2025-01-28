@@ -65,7 +65,7 @@ class IPMIMonitor(MonitorAgent):
                 address = match.group(2).strip()
                 value = match.group(3).strip().split(' ')[0]
 
-                (domain, label) = sensors_dict[address]
+                (domain, label) = self.sensors_dict[address]
                 if domain not in ipmi_measures:
                     ipmi_measures[domain] = {}
                 ipmi_measures[domain][label] = value

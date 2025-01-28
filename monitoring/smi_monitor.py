@@ -1,4 +1,6 @@
 from .monitor_agent import MonitorAgent
+import subprocess as sp
+import re
 
 class SMIMonitor(MonitorAgent):
 
@@ -15,20 +17,20 @@ class SMIMonitor(MonitorAgent):
         pass
 
     def query_metrics(self):
-        command = "nvidia-smi --query-gpu=" + SMI_QUERY_FLAT + " --format=csv"
-        smi_data = __generic_smi(command)
+        command = "nvidia-smi --query-gpu=" + SMIMonitor.SMI_QUERY_FLAT + " --format=csv"
+        smi_data = self.__generic_smi(command)
         header = smi_data[0]
         data   = smi_data[1:]
         smi_measures = {}
         for data_single_gc in data:
-            gpu_index, gpu_data = __convert_gc_to_dict(header, data_single_gc)
+            gpu_index, gpu_data = self.__convert_gc_to_dict(header, data_single_gc)
             smi_measures[gpu_index] = gpu_data
         return smi_measures
 
     def get_label(self):
         return "SMI"
 
-    def __generic_smi(command : str):
+    def __generic_smi(self, command : str):
         try:
             csv_like_data = sp.check_output(command.split(),stderr=sp.STDOUT).decode('ascii').split('\n')
             smi_data = [cg_data.split(',') for cg_data in csv_like_data[:-1]] # end with ''
@@ -36,10 +38,10 @@ class SMIMonitor(MonitorAgent):
             raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
         return smi_data
 
-    def __convert_gc_to_dict(header : list, data_single_gc : list):
+    def __convert_gc_to_dict(self, header : list, data_single_gc : list):
         gpu_index = None
         gpu_data = {}
-        for position, query in enumerate(SMI_QUERY):
+        for position, query in enumerate(SMIMonitor.SMI_QUERY):
             if 'N/A' in data_single_gc[position]:
                 value = 'NA'
             elif '[' in header[position]: # if a unit is written, like [MiB], we have to strip it from value

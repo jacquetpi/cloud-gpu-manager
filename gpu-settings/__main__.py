@@ -1,8 +1,15 @@
 from .mig_wrapper import MIGWrapper
+import sys
 
 if __name__ == '__main__':
 
-    mig_wrapper = MIGWrapper(sudo_command='"sudo-g5k"')
+    mig_wrapper = MIGWrapper(sudo_command='sudo-g5k')
+
+    gpu_count = mig_wrapper.gpu_count()
+    if gpu_count <= 0:
+        print('Not enough GPU to continue')
+        sys.exit(-1)
+    print(gpu_count, 'GPUs found')
 
     # https://docs.nvidia.com/datacenter/tesla/mig-user-guide/
 

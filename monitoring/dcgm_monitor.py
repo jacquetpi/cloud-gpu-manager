@@ -1,4 +1,6 @@
 from .monitor_agent import MonitorAgent
+import subprocess as sp
+import re
 
 class DCGMMonitor(MonitorAgent):
 
@@ -14,7 +16,7 @@ class DCGMMonitor(MonitorAgent):
     def query_metrics(self):
         try:
             # Run the curl command and capture the output
-            cmd = "curl -s " + DCGM_EXPORT_URL
+            cmd = "curl -s " + self.url
             result = sp.run(cmd, shell=True, text=True, capture_output=True, check=True)
             output = result.stdout
 

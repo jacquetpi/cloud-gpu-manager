@@ -26,6 +26,18 @@ class MIGWrapper(object):
     def __init__(self, sudo_command : str):
         self.sudo_command = sudo_command
 
+    def gpu_count(self):
+        """Retrieve GPU count"""
+        try:
+            p = subprocess.Popen(
+            ['nvidia-smi', '--format=csv,noheader', '--query-gpu=count'],
+            stdout=subprocess.PIPE,
+            encoding='utf-8')
+            output, _ = p.communicate()
+        except:
+            return 0
+        return int(output.splitlines()[0])
+
     def enable_mig(self, gpu_id: int = None):
         # TODO PJ: Also enable persitence mode ? || sudo-g5k nvidia-smi -i 0 -pm 1
         """sudo nvidia-smi -i ${gpu_id} -mig 1"""
