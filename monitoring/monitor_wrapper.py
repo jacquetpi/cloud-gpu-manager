@@ -49,6 +49,9 @@ class MonitorWrapper:
         self.thread.start()
 
     def update_monitoring(self, args, monitor_index : int, reset_launch : bool = False):
+        if self.thread is None:
+            self.monitors[monitor_index].update(args)
+            return
         with self.thread_lock:
             self.monitors[monitor_index].update(args)
             if reset_launch: self.thread_reset.set()

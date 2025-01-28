@@ -43,7 +43,7 @@ class MIGWrapper(object):
         """sudo nvidia-smi -i ${gpu_id} -mig 1"""
         cmd = [self.sudo_command, 'nvidia-smi', '-mig', '1']
         if gpu_id is not None:  cmd.extend(['-i', str(gpu_id)])
-           
+
         # Enable NVIDIA MIG
         p = subprocess.Popen(
             cmd,
@@ -53,7 +53,7 @@ class MIGWrapper(object):
         output, _ = p.communicate()
         if 'Warning' in output:
             print(output) # TODO PJ: check for message: Warning: MIG mode is in pending enable state for
-    
+
     def disable_mig(self, gpu_id: int = None):
         """Execute command: sudo nvidia-smi -i ${gpu_id} -mig 0"""
         cmd = [self.sudo_command, 'nvidia-smi', '-mig', '0']
@@ -94,7 +94,7 @@ class MIGWrapper(object):
         """Create GPU instance on MIG-enabled GPU device.
         The function is equivalant to executing the command: 
         :code:`sudo nvidia-smi mig -i ${gpu_id} -cgi ${gi_profiles}`
-        
+
         Args:
             gi_profiles (str or list of str): Profile tuple or a list of profile 
                 tuple. A profile tuple consists of 1. a profile name or ID and 
@@ -146,7 +146,7 @@ class MIGWrapper(object):
         """Create compute instance on MIG-enabled GPU device.
         The function is equivalant to executing the command: 
         :code:`sudo nvidia-smi mig -i ${gpu_id} -gi ${gi_id} -cci ${ci_profiles}`
-        
+
         Args:
             ci_profiles (str or list of str): Profile name / ID or a list of profile
                 names / IDs. If no profile name or ID is given, then the default*
@@ -195,12 +195,12 @@ class MIGWrapper(object):
                     'gpu_id': int(g_id), 'gi_id': int(gi_id), 'name': name, 'ci_id': int(ci_id), 
                     'profile_id': int(profile_id),
                 })
-    
+
         return ci_status_list
 
     def list_gpu_instance_active(self, gpu_id: int = None):
         """sudo nvidia-smi mig -lgi -i ${gpu_id}
-        
+
         Returns: list of dict.
             A list of GPU Instance status. Example: [{'gpu': 0, 'gi_id': 13, 'name': 'MIG 1g.10gb', 
                 'profile_id': 19, 'ci_id': 1, 'placement': {'start': 0, 'size': 1}}]
@@ -227,9 +227,9 @@ class MIGWrapper(object):
                     'gpu_id': int(g_id), 'name': name, 'profile_id': int(profile_id), 'gi_id': int(gi_id),
                     'placement': {'start': int(placement_start), 'size': int(placement_size)}
                 })
-        
+
         return gi_status_list
-    
+
     def list_compute_instance_active(self, gpu_id: int = None, gi_id: int = None):
         """sudo nvidia-smi -lci -i ${gpu_id} -gi ${gi_id}
 
@@ -285,7 +285,7 @@ class MIGWrapper(object):
         if gpu_id is not None:
             cmd.extend(['-i', str(gpu_id)])
         return subprocess.call(cmd)
-    
+
     def list_gpu_instance_profiles(self, gpu_id: int = None):
         """nvidia-smi -lgip -i ${gpu_id}"""
         cmd = [self.sudo_command, 'nvidia-smi', 'mig', '-lgip']
@@ -307,9 +307,9 @@ class MIGWrapper(object):
                 gi_profile_list.append({
                     'gpu_id': int(gpu_id), 'name': name, 'profile_id': int(profile_id), 'free_instances': int(free_instances), 'total_instances': int(total_instances),
                     'memory': float(memory), 'P2P': (p2p.upper() == 'YES'), 'sm': int(sm), 'dec': int(dec), 'enc': int(enc)})
-        
+
         return gi_profile_list
-    
+
     def list_gpu_instance_possible_placements(self, gpu_id: int = None):
         """nvidia-smi -lgipp -i ${gpu_id}"""
         cmd = [self.sudo_command, 'nvidia-smi', 'mig', '-lgipp']
@@ -334,7 +334,6 @@ class MIGWrapper(object):
                 })
         return gi_placement_list
 
-    
     def list_compute_instance_profiles(self, gpu_id: int = None, gi_id: int = None):
         """nvidia-smi -lcip -i ${gpu_id} -gi ${gi_id}"""
         cmd = [self.sudo_command, 'nvidia-smi', 'mig', '-lcip']
@@ -357,9 +356,9 @@ class MIGWrapper(object):
                 ci_profile_list.append({
                     'gpu_id': int(g_id),  'gpu_instance_id': int(gpu_instance_id), 'name': name, 'profile_id': int(profile_id.replace('*', '')), 'free_instances': int(free_instances), 'total_instances': int(total_instances),
                     'sm': int(sm), 'dec': int(dec), 'enc': int(enc), 'ofa':int(ofa)})
-        
+
         return ci_profile_list
-    
+
     def list_compute_instance_possible_placements(self, gpu_id: int = None):
         cmd = [self.sudo_command, 'nvidia-smi', 'mig', '-lcipp']
         if gpu_id is not None: cmd.extend(['-i', str(gpu_id)])
@@ -403,18 +402,14 @@ class MIGWrapper(object):
         output, _ = p.communicate()
         print(output)
         mig_profiles = []
-        gpu_id = None       
+        gpu_id = None
         for line in output.splitlines():
             # Match GPU line
-            
             gpu_match = cls.LIST_GPU_PATTERN.match(line)
-            print('debug', line)
-            
+
             if gpu_match: gpu_id, _, _ = gpu_match.groups()
-            print('debug1', gpu_match, gpu_id)
 
             mig_match = cls.LIST_MIG_PATTERN.match(line)
-            print('debug2', mig_match)
             if mig_match and gpu_id:
                 mig_profile_name, device_number, mig_uuid = mig_match.groups()
                 mig_profiles.append({'profile_name': mig_profile_name, 'gpu_id': int(gpu_id),

@@ -3,9 +3,11 @@ from .workload_agent import WorkloadAgent
 
 class WorkloadBurn(WorkloadAgent):
 
-    def __init__(self):
-        pass
+    def __init__(self, container_runtime : str = 'docker', prefix : str = None):
+        self.container_runtime = container_runtime
+        self.prefix = prefix
 
-    def workload(cls, mig_identifier : str, image : str = 'gpu_burn'):
-        cmd_dci = ["docker", 'run', '--runtime=nvidia', '-e', 'NVIDIA_VISIBLE_DEVICES=' + mig_identifier, image, 'nvidia-smi', '-L']
-        subprocess.call(cmd_dci)
+    def workload(self, gpu_id : str, image : str = 'gpu_burn'):
+        cmd = [self.container_runtime, 'run', '--runtime=nvidia', '-e', 'NVIDIA_VISIBLE_DEVICES=' + gpu_id, image, '-d', '120']
+        if self.prefix is not None: cmd.insert(0, self.prefix)
+        return cmd

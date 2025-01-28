@@ -17,9 +17,9 @@ if __name__ == '__main__':
 
     suitable_gpus = list() # List of gpu id
     mig_status = mig_wrapper.check_mig_status()
-    for id, status in enumerate(mig_status):
+    for mig_gpu, status in enumerate(mig_status):
         active, _ = status
-        if active: suitable_gpus.append(id)
+        if active: suitable_gpus.append(mig_gpu)
     print('List of GPUs with MIG currently operational:', suitable_gpus)
 
     #for id in range(gpu_count): print(mig_wrapper.enable_mig(gpu_id=id))
