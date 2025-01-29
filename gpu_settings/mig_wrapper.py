@@ -122,7 +122,6 @@ class MIGWrapper(object):
         if create_ci:
             # Also create the corresponding compute Instances (CI)
             cmd.append('-C')
-        print(cmd)
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, encoding='utf-8')
         output, _ = p.communicate()
         if 'Failed' in output or 'No' in output:
@@ -133,7 +132,7 @@ class MIGWrapper(object):
 
         gi_status_list = list()
         for line in output.splitlines():
-            match_groups = cls.CREATE_GI_PATTERN.match(line)
+            match_groups = MIGWrapper.CREATE_GI_PATTERN.match(line)
             if match_groups is not None:
                 gi_id, g_id, name, profile_id = match_groups.groups()
                 gi_status_list.append({
@@ -176,7 +175,7 @@ class MIGWrapper(object):
             cmd.extend(['-i', str(gpu_id)])
         if gi_id is not None:
             cmd.extend(['-gi', str(gi_id)])
-        print('debug', cmd)
+
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, encoding='utf-8')
         output, _ = p.communicate()
         # Check if there are something failed
@@ -188,7 +187,7 @@ class MIGWrapper(object):
 
         ci_status_list = list()
         for line in output.splitlines():
-            match_groups = cls.CREATE_CI_PATTERN.match(line)
+            match_groups = MIGWrapper.CREATE_CI_PATTERN.match(line)
             if match_groups is not None:
                 ci_id, g_id, gi_id, name, profile_id = match_groups.groups()
                 ci_status_list.append({
@@ -220,7 +219,7 @@ class MIGWrapper(object):
         # parse output string
         gi_status_list = list()
         for line in output.splitlines():
-            match_groups = cls.GI_STATUS_PATTERN.match(line)
+            match_groups = MIGWrapper.GI_STATUS_PATTERN.match(line)
             if match_groups:
                 g_id, name, profile_id, gi_id, placement_start, placement_size = match_groups.groups()
                 gi_status_list.append({
@@ -252,7 +251,7 @@ class MIGWrapper(object):
         # parse output string
         ci_status_list = list()
         for line in output.splitlines():
-            match_groups = cls.CI_STATUS_PATTERN.match(line)
+            match_groups = MIGWrapper.CI_STATUS_PATTERN.match(line)
             if match_groups:
                 g_id, gi_id, name, profile_id, ci_id, placement_start, placement_size = match_groups.groups()
                 ci_status_list.append({
@@ -301,7 +300,7 @@ class MIGWrapper(object):
         # parse output string
         gi_profile_list = list()
         for line in output.splitlines():
-            match_groups = cls.GI_PROFILE_PATTERN.match(line)
+            match_groups = MIGWrapper.GI_PROFILE_PATTERN.match(line)
             if match_groups:
                 gpu_id, name, profile_id, free_instances, total_instances, memory, p2p, sm, dec, enc = match_groups.groups()
                 gi_profile_list.append({
@@ -325,7 +324,7 @@ class MIGWrapper(object):
         # parse output string
         gi_placement_list = list()
         for line in output.splitlines():
-            match_groups = cls.GI_PLACEMENT_PATTERN.match(line)
+            match_groups = MIGWrapper.GI_PLACEMENT_PATTERN.match(line)
             if match_groups:
                 g_id, profile_id, placements, size = match_groups.groups()
                 gi_placement_list.append({
@@ -350,7 +349,7 @@ class MIGWrapper(object):
         # parse output string
         ci_profile_list = list()
         for line in output.splitlines():
-            match_groups = cls.CI_PROFILE_PATTERN.match(line)
+            match_groups = MIGWrapper.CI_PROFILE_PATTERN.match(line)
             if match_groups:
                 g_id, gpu_instance_id, name, profile_id, free_instances, total_instances, sm, dec, enc, ofa = match_groups.groups()
                 ci_profile_list.append({
@@ -373,7 +372,7 @@ class MIGWrapper(object):
         # parse output string
         ci_placement_list = list()
         for line in output.splitlines():
-            match_groups = cls.CI_PLACEMENT_PATTERN.match(line)
+            match_groups = MIGWrapper.CI_PLACEMENT_PATTERN.match(line)
             if match_groups:
                 g_id, gi_id, profile_id, placements, size = match_groups.groups()
                 ci_placement_list.append({
@@ -383,6 +382,7 @@ class MIGWrapper(object):
         return ci_placement_list
 
     def clean_reset(self, gpu_id: int = None):
+        print('Cleaning existing GI/CI')
         cmd_dci = [self.sudo_command, 'nvidia-smi', 'mig', '-dci']
         cmd_dgi = [self.sudo_command, 'nvidia-smi', 'mig', '-dgi']
         if gpu_id is not None: 
@@ -400,16 +400,15 @@ class MIGWrapper(object):
             encoding='utf-8',
         )
         output, _ = p.communicate()
-        print(output)
         mig_profiles = []
         gpu_id = None
         for line in output.splitlines():
             # Match GPU line
-            gpu_match = cls.LIST_GPU_PATTERN.match(line)
+            gpu_match = MIGWrapper.LIST_GPU_PATTERN.match(line)
 
             if gpu_match: gpu_id, _, _ = gpu_match.groups()
 
-            mig_match = cls.LIST_MIG_PATTERN.match(line)
+            mig_match = MIGWrapper.LIST_MIG_PATTERN.match(line)
             if mig_match and gpu_id:
                 mig_profile_name, device_number, mig_uuid = mig_match.groups()
                 mig_profiles.append({'profile_name': mig_profile_name, 'gpu_id': int(gpu_id),

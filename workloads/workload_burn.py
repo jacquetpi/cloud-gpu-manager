@@ -7,7 +7,7 @@ class WorkloadBurn(WorkloadAgent):
         self.container_runtime = container_runtime
         self.prefix = prefix
 
-    def workload(self, gpu_id : str, image : str = 'gpu_burn'):
-        cmd = [self.container_runtime, 'run', '--runtime=nvidia', '-e', 'NVIDIA_VISIBLE_DEVICES=' + gpu_id, image, '-d', '120']
+    def workload(self, gpu_id : str):
+        cmd = [self.container_runtime, 'run', '--rm', '--runtime=nvidia', '-e', 'NVIDIA_VISIBLE_DEVICES=' + gpu_id, 'gpu_burn', './gpu_burn', '-d', '120']
         if self.prefix is not None: cmd.insert(0, self.prefix)
         return cmd
