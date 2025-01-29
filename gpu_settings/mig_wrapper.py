@@ -15,7 +15,7 @@ class MIGWrapper(object):
     CI_STATUS_PATTERN = re.compile(r'\|\s+(\d+)\s+(\d+)\s+(MIG\s+\d+g\.\d+gb|MIG\s+\d+c\.\d+g\.\d+gb)\s+(\d+)\s+(\d+)\s+(\d+)\:(\d+)')
 
     GI_PROFILE_PATTERN = re.compile(r'\|\s+(\d+)\s+(MIG\s+\d+g\.\d+gb)\s+(\d+)\s+(\d+)\/(\d+)\s+([\d\.]+)\s+(Yes|No)\s+(\d+)\s+(\d+)\s+(\d+)')
-    CI_PROFILE_PATTERN = re.compile(r'\|\s+(\d+)\s+(\d+)\s+(MIG\s+\d+g\.\d+gb)\s+(\d+\*?)\s+(\d+)\/(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)')
+    CI_PROFILE_PATTERN = re.compile(r'^\|\s+(\d+)\s+(\d+)\s+MIG\s+([\d+c.]+g\.\d+gb)\s+(\d+)\*?\s+(\d+)/(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\|$')
 
     GI_PLACEMENT_PATTERN = re.compile(r'GPU\s+(\d+)\s+Profile\s+ID\s+(\d+)\s+Placements?:\s*({[0-9,]+})(?::(\d+))?')
     CI_PLACEMENT_PATTERN = re.compile(r'GPU\s+(\d+)\s+GI\s+(\d+)\s+Profile\s+ID\s+(\d+)\s+Placements?:\s*({[0-9,]+})(?::(\d+))?')
