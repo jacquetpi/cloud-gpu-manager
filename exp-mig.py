@@ -63,7 +63,7 @@ def iterate_on_complements(mig_wrapper, monitors_wrapper, suitable_gpus, protago
             smallest_profile = gi_profile_list[0]
             if smallest_profile['free_instances'] <= index:
                 last_round = True
-            for i in range(index): mig_wrapper.create_gpu_instance(gpu_id=suitable_gpu, gi_profiles=smallest_profile, create_ci=True)
+            for i in range(index): mig_wrapper.create_gpu_instance(gpu_id=suitable_gpu, gi_profiles=smallest_profile['name'], create_ci=True)
 
             # Health check
             list_ci_active = mig_wrapper.list_compute_instance_active(gpu_id=suitable_gpu, gi_id=list_gi_active_specific[0]['gi_id']) # index of the main character is 0
