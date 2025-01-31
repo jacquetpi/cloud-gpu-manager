@@ -40,12 +40,12 @@ def iterate_on_ci(mig_wrapper, monitors_wrapper, suitable_gpus):
     for ci_profile in ci_profile_list:
 
         # II) iterate_on_complements
-        iterate_on_complements(mig_wrapper, monitors_wrapper, suitable_gpus, main_protagonist=ci_profile['name'])
+        iterate_on_complements(mig_wrapper, monitors_wrapper, suitable_gpus, list_gi_active[0]['name'], protagonist_ci=ci_profile['name'])
 
 #########################
 #Complementary instances#
 #########################
-def iterate_on_complements(mig_wrapper, monitors_wrapper, suitable_gpus, main_protagonist):
+def iterate_on_complements(mig_wrapper, monitors_wrapper, suitable_gpus, protagonist_gi, protagonist_ci):
 
     index=0
     last_round = False
@@ -56,7 +56,7 @@ def iterate_on_complements(mig_wrapper, monitors_wrapper, suitable_gpus, main_pr
 
             # First, the main protagonist
             list_gi_active_specific = mig_wrapper.list_gpu_instance_active(gpu_id=suitable_gpu)
-            mig_wrapper.create_compute_instance(gpu_id=suitable_gpu, gi_id=list_gi_active_specific[0]['gi_id'], ci_profiles=main_protagonist) # Create Compute instance
+            mig_wrapper.create_compute_instance(gpu_id=suitable_gpu, gi_id=list_gi_active_specific[0]['gi_id'], ci_profiles=protagonist_ci) # Create Compute instance
 
             # Then, the increasing workload
             gi_profile_list = mig_wrapper.list_gpu_instance_profiles(gpu_id=suitable_gpu)
@@ -66,24 +66,21 @@ def iterate_on_complements(mig_wrapper, monitors_wrapper, suitable_gpus, main_pr
             for i in range(index): mig_wrapper.create_gpu_instance(gpu_id=suitable_gpu, gi_profiles=smallest_profile, create_ci=True)
 
             # Health check
-            list_ci_active = mig_wrapper.list_compute_instance_active(gpu_id=suitable_gpu, gi_id=list_gi_active_specific[0]['gi_id']) # index is 0 in our context where we operate only one GI per GPU
+            list_ci_active = mig_wrapper.list_compute_instance_active(gpu_id=suitable_gpu, gi_id=list_gi_active_specific[0]['gi_id']) # index of the main character is 0
             if not list_ci_active: # Check if everything went well
                 print('CI creation: Something went wrong on GPU', suitable_gpu)
                 continue
 
         # II) Update monitoring
-        setting_name = list_gi_active[0]['name'].replace(' ','_') + '|' + ci_profile['name'].replace(' ','_') + '|' + str(index)
+        setting_name = protagonist_gi.replace(' ','_') + '|' + protagonist_ci.replace(' ','_') + '|' + str(index)
         monitors_wrapper.update_monitoring({'context': setting_name}, monitor_index=0, reset_launch=True)
 
         # III) Launch stress on all CIs
         launch_stress(mig_wrapper, monitors_wrapper, suitable_gpus, mig_wrapper.list_usable_mig_partition())
 
         # IV) Destroy all CIs
-        for suitable_gpu in suitable_gpus: 
-            list_gi_active_specific = mig_wrapper.list_gpu_instance_active(gpu_id=suitable_gpu)
-            list_ci_active = mig_wrapper.list_compute_instance_active(gpu_id=suitable_gpu, gi_id=list_gi_active_specific[0]['gi_id']) # index is 0 in our context where we operate only one GI per GPU
-            for ci_active in list_ci_active:
-                mig_wrapper.destroy_compute_instance(gpu_id=ci_active['gpu_id'], gi_id=ci_active['gi_id'], ci_ids=ci_active['ci_id'])
+        for suitable_gpu in suitable_gpus:
+            mig_wrapper.destroy_compute_instance(gpu_id=suitable_gpu)
 
         # V) Exit condition
         index+=1
