@@ -144,13 +144,14 @@ if __name__ == "__main__":
     # Starting  measurements #
     ##########################
 
-    print('Capturing idle')
-    monitors_wrapper.update_monitoring({'context':'idle'}, monitor_index=0, reset_launch=False)
-    time.sleep(180)
-    print('Idle capture ended')
-    
     try:
         monitors_wrapper.start_monitoring()
+
+        print('Capturing idle')
+        monitors_wrapper.update_monitoring({'context':'idle'}, monitor_index=0, reset_launch=False)
+        time.sleep(180)
+        print('Idle capture ended')
+    
         iterate_on_gi(mig_wrapper, monitors_wrapper, suitable_gpus)
 
     except KeyboardInterrupt:
