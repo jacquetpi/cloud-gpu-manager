@@ -58,7 +58,7 @@ def iterate_on_combinations(mig_wrapper, monitors_wrapper, suitable_gpus, ci_tra
         setting_name = '|'.join('0' if config == None else re.match(r"^\d+", config).group() for config in combination)
         monitors_wrapper.update_monitoring({'context': setting_name}, monitor_index=0, reset_launch=True)
         print(setting_name, str(round(progress/total_combinations*100)) + '%')
-        
+
         # III) Launch stress on all CIs
         launch_stress(mig_wrapper, monitors_wrapper, suitable_gpus, mig_wrapper.list_usable_mig_partition())
 
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
     print('Capturing idle')
     monitors_wrapper.update_monitoring({'context':'idle'}, monitor_index=0, reset_launch=False)
-    time.sleep(180)
+    time.sleep(300)
     print('Idle capture ended')
 
     try:
