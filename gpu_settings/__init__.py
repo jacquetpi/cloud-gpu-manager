@@ -1,3 +1,3 @@
 from .mig_wrapper import MIGWrapper
 
-__all__ = ["MIGWrapper"]
+__all__ = ["MIGWrapper","KubectlWrapper"]

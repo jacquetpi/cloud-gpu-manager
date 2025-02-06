@@ -1,7 +1,7 @@
 import subprocess
 import re
 
-class KubectlWrapper:
+class KubectlWrapper(object):
     def __init__(self, prefix_command: list = ['minikube', 'kubectl', '--']):
         self.prefix_command = prefix_command
 
@@ -27,7 +27,7 @@ data:
             text=True,
             capture_output=True
         )
-        
+
         if process.returncode == 0:
             print("ConfigMap updated successfully.")
         else:
@@ -40,29 +40,29 @@ data:
             text=True,
             capture_output=True
         )
-        
+
         if process.returncode == 0:
             print("Cluster policy patched successfully.")
         else:
             print("Error patching cluster policy:", process.stderr)
-    
+
     def get_current_oversub_policy(self):
         process = subprocess.run(
             self.prefix_command + ["describe", "nodes"],
             text=True,
             capture_output=True
-        )   
+        )
         if process.returncode != 0:
             print("Error retrieving node description:", process.stderr)
             return None
-        
+
         match = re.search(r"nvidia.com/gpu\.replicas=(\d+)", process.stdout)
         if match:
             return int(match.group(1))
-        
+
         print("No replicas information found.")
         return None
-    
+
     def get_gpu_instance_count(self):
         process = subprocess.run(
             self.prefix_command + ["describe", "nodes"],
@@ -72,11 +72,11 @@ data:
         if process.returncode != 0:
             print("Error retrieving node description:", process.stderr)
             return None
-        
+
         match = re.search(r"nvidia.com/gpu:\s+(\d+)", process.stdout)
         if match:
             return int(match.group(1))
-        
+
         print("No GPU instance information found.")
         return None
 
@@ -125,7 +125,7 @@ spec:
             text=True,
             capture_output=True
         )
-        
+
         if process.returncode == 0:
             print("All pods deleted successfully.")
         else:

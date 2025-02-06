@@ -7,18 +7,17 @@ import sys, time, re
 #########################
 # Create MIG instances  #
 #########################
-def setup_namespace_and_launch(mig_wrapper, monitors_wrapper, suitable_gpus):
-    kubectl = KubectlWrapper()
-    kubectl.set_kube_replicas_policy(3, config_name="oversub-all-3")
-    kubectl.patch_cluster_policy(config_name="oversub-all-3")
-    while(True)
-        current_value = kubectl.get_current_oversub_policy()
+def setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper):
+    kubectl_wrapper.set_kube_replicas_policy(3, config_name="oversub-all-3")
+    kubectl_wrapper.patch_cluster_policy(config_name="oversub-all-3")
+    while(True):
+        current_value = kubectl_wrapper.get_current_oversub_policy()
         if current_value == 3: break
         time.sleep(1)   
-    print("Current oversub policy:", kubectl.get_current_oversub_policy())
-    print("GPU instance count:", kubectl.get_gpu_instance_count())
-    kubectl.launch_pods(kubectl.get_gpu_instance_count())
-    kubectl.destroy_all_pods()
+    print("Current oversub policy:", kubectl_wrapper.get_current_oversub_policy())
+    print("GPU instance count:", kubectl_wrapper.get_gpu_instance_count())
+    kubectl_wrapper.launch_pods(kubectl.get_gpu_instance_count())
+    kubectl_wrapper.destroy_all_pods()
 
 if __name__ == "__main__":
 
@@ -32,6 +31,7 @@ if __name__ == "__main__":
     if gpu_count <= 0:
         print('Not enough GPU to continue')
         sys.exit(-1)
+    kubectl_wrapper = KubectlWrapper()
 
     ##########################
     # Monitoring management  #
@@ -46,21 +46,6 @@ if __name__ == "__main__":
     monitors_wrapper = MonitorWrapper(monitors=monitors)
 
     ##########################
-    # Setup experiment       #
-    ##########################
-    mig_wrapper.clean_reset()
-
-    suitable_gpus = list() # List of gpu id
-    mig_status = mig_wrapper.check_mig_status()
-    for mig_gpu, status in enumerate(mig_status):
-        active, _ = status
-        if active: suitable_gpus.append(mig_gpu)
-    print('List of GPUs with MIG currently operational:', suitable_gpus)
-    if not suitable_gpus:
-        print('Not enough MIG hardware to continue')
-        sys.exit(-1)
-
-    ##########################
     # Starting  measurements #
     ##########################
 
@@ -71,8 +56,8 @@ if __name__ == "__main__":
         monitors_wrapper.update_monitoring({'context':'idle'}, monitor_index=0, reset_launch=False)
         time.sleep(300)
         print('Idle capture ended')
-        
-        setup_gi_and_launch(mig_wrapper, monitors_wrapper, suitable_gpus)
+
+        setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper)
 
     except KeyboardInterrupt:
         pass

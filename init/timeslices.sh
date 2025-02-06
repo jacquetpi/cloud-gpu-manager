@@ -52,49 +52,48 @@ minikube kubectl -- describe nodes | grep nvidia
 
 eval $(minikube docker-env)
 docker build -t gpu_burn /home/pjacquet/gpu-burn
-minikube image load gpu_burn
+#minikube image load gpu_burn
+
+sudo-g5k systemctl stop dcgm-exporter
+sleep 5
+docker run -d --gpus all --cap-add SYS_ADMIN --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.1-ubuntu22.04 dcgm-exporter --kubernetes-virtual-gpus
 
 # Debug
 # minikube kubectl -- get clusterpolicies.nvidia.com/cluster-policy   -n gpu-operator -o yaml
 
 # Test some images
+# minikube kubectl create deployment hello-minikube --image=kicbase/echo-server:1.0
+# cat <<EOF | minikube kubectl -- apply -f -
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: gpu-test
+# spec:
+#   restartPolicy: Never
+#   containers:
+#   - name: cuda-container
+#     image: nvidia/cuda:11.8.0-runtime-ubuntu22.04
+#     command: ["nvidia-smi"]
+#     resources:
+#       limits:
+#         nvidia.com/gpu: 1
+# EOF
 
-minikube kubectl create deployment hello-minikube --image=kicbase/echo-server:1.0
+# cat <<EOF | minikube kubectl -- apply -f -
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: gpu-burn
+# spec:
+#   restartPolicy: Never
+#   containers:
+#   - name: container-burn
+#     image: gpu_burn
+#     imagePullPolicy: Never
+#     command: ["./gpu_burn","-d","120"]
+#     resources:
+#       limits:
+#         nvidia.com/gpu: 1
+# EOF
 
-cat <<EOF | minikube kubectl -- apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: gpu-test
-spec:
-  restartPolicy: Never
-  containers:
-  - name: cuda-container
-    image: nvidia/cuda:11.8.0-runtime-ubuntu22.04
-    command: ["nvidia-smi"]
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-EOF
-
-cat <<EOF | minikube kubectl -- apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: gpu-burn
-spec:
-  restartPolicy: Never
-  containers:
-  - name: container-burn
-    image: gpu_burn
-    imagePullPolicy: Never
-    command: ["./gpu_burn","-d","120"]
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-EOF
-
-minikube kubectl -- delete pod gpu-burn
-
-sudo-g5k systemctl stop dcgm-exporter
-docker run -d --gpus all --cap-add SYS_ADMIN --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.1-ubuntu22.04 dcgm-exporter --kubernetes-virtual-gpus
+#minikube kubectl -- delete pod gpu-burn
