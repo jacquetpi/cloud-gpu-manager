@@ -27,12 +27,38 @@ minikube kubectl -- get po -A
 
 helm install --wait --generate-name -n gpu-operator --create-namespace nvidia/gpu-operator
 
-minikube kubectl -- create -n gpu-operator -f time-slicing-config.yaml
+cat <<EOF | minikube kubectl -- create -n gpu-operator -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oversub-all-2
+data:
+  any: |-
+    version: v1
+    flags:
+      migStrategy: none
+    sharing:
+      timeSlicing:
+        resources:
+        - name: nvidia.com/gpu
+          replicas: 2
+EOF
+
 minikube kubectl -- patch clusterpolicies.nvidia.com/cluster-policy \
     -n gpu-operator --type merge \
-    -p '{"spec": {"devicePlugin": {"config": {"name": "time-slicing-config-all", "default": "any"}}}}'
+    -p '{"spec": {"devicePlugin": {"config": {"name": "oversub-all-2", "default": "any"}}}}'
 
-minikube kubectl -- describe nodes
+minikube kubectl -- describe nodes | grep nvidia
+
+eval $(minikube docker-env)
+docker build -t gpu_burn /home/pjacquet/gpu-burn
+minikube image load gpu_burn
+
+# Debug
+# minikube kubectl -- get clusterpolicies.nvidia.com/cluster-policy   -n gpu-operator -o yaml
+
+# Test some images
+
 minikube kubectl create deployment hello-minikube --image=kicbase/echo-server:1.0
 
 cat <<EOF | minikube kubectl -- apply -f -
@@ -51,9 +77,6 @@ spec:
         nvidia.com/gpu: 1
 EOF
 
-eval $(minikube docker-env)
-docker build -t gpu_burn /home/pjacquet/gpu-burn
-minikube image load gpu_burn
 cat <<EOF | minikube kubectl -- apply -f -
 apiVersion: v1
 kind: Pod
@@ -70,3 +93,8 @@ spec:
       limits:
         nvidia.com/gpu: 1
 EOF
+
+minikube kubectl -- delete pod gpu-burn
+
+sudo-g5k systemctl stop dcgm-exporter
+docker run -d --gpus all --cap-add SYS_ADMIN --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.1-ubuntu22.04 dcgm-exporter --kubernetes-virtual-gpus

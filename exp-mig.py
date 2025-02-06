@@ -99,7 +99,6 @@ def launch_stress(mig_wrapper, monitors_wrapper, suitable_gpus, mig_list):
     for workload in workloads:
         workload.wait()
 
-# Also measure idle
 if __name__ == "__main__":
 
     print('Starting MIG experiment')
