@@ -80,16 +80,16 @@ data:
         print("No GPU instance information found.")
         return None
 
-def launch_pods(self, num_pods: int, image: str = "gpu_burn", command: list = ["./gpu_burn", "-d", "120"], namespace: str = "default"):
-    pod_yaml = ""
-    for i in range(num_pods):
-        pod_name = f"gpu-burn-{i}"
-        # Delete the pod if it already exists
-        subprocess.run(
-            self.prefix_command + ["delete", "pod", pod_name, "-n", namespace, "--ignore-not-found"],
-            text=True,
-            capture_output=True
-        )
+    def launch_pods(self, num_pods: int, image: str = "gpu_burn", command: list = ["./gpu_burn", "-d", "120"], namespace: str = "default"):
+        pod_yaml = ""
+        for i in range(num_pods):
+            pod_name = f"gpu-burn-{i}"
+            # Delete the pod if it already exists
+            subprocess.run(
+                self.prefix_command + ["delete", "pod", pod_name, "-n", namespace, "--ignore-not-found"],
+                text=True,
+                capture_output=True
+            )
 
         pod_yaml += f"""---
 apiVersion: v1
@@ -107,17 +107,17 @@ spec:
       limits:
         nvidia.com/gpu: 1
 """
-    # Apply the updated YAML to create new pods
-    process = subprocess.run(
-        self.prefix_command + ["apply", "-n", namespace, "-f", "-"],
-        input=pod_yaml,
-        text=True,
-        capture_output=True
-    )
-    if process.returncode == 0:
-        print(f"{num_pods} pods launched successfully.")
-    else:
-        print("Error launching pods:", process.stderr)
+        # Apply the updated YAML to create new pods
+        process = subprocess.run(
+            self.prefix_command + ["apply", "-n", namespace, "-f", "-"],
+            input=pod_yaml,
+            text=True,
+            capture_output=True
+        )
+        if process.returncode == 0:
+            print(f"{num_pods} pods launched successfully.")
+        else:
+            print("Error launching pods:", process.stderr)
 
     def destroy_all_pods(self, namespace: str = "default"):
         process = subprocess.run(
