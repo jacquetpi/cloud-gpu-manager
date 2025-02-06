@@ -16,12 +16,12 @@ def setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper):
         time.sleep(1)   
     print("Current oversub policy:", kubectl_wrapper.get_current_oversub_policy())
     print("GPU instance count:", kubectl_wrapper.get_gpu_instance_count())
-    kubectl_wrapper.launch_pods(kubectl.get_gpu_instance_count())
+    kubectl_wrapper.launch_pods(kubectl_wrapper.get_gpu_instance_count())
     kubectl_wrapper.destroy_all_pods()
 
 if __name__ == "__main__":
 
-    print('Starting pass-through experiment')
+    print('Starting time-slice experiment')
 
     #########################
     # Hardware management   #
