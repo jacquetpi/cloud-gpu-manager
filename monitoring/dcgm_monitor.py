@@ -38,8 +38,11 @@ class DCGMMonitor(MonitorAgent):
                     if labels: # Remove the surrounding braces and split into key-value pairs
                         label_pairs = labels.strip('{}').split(',')
                         for pair in label_pairs:
-                            key, val = pair.split('=')
-                            label_dict[key.strip()] = val.strip('"')
+                            splitted_val = pair.split('=')
+                            if len(splitted_val) == 2:
+                                key, val = splitted_val
+                                label_dict[key.strip()] = val.strip('"')
+                            else: print('DCGM monitoring: Something weird with line', line)
 
                     if label_dict:
                         domain = 'GPU' + str(label_dict["gpu"])

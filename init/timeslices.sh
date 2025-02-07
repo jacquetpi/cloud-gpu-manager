@@ -44,9 +44,9 @@ helm install --wait --generate-name -n gpu-operator --create-namespace nvidia/gp
 #           replicas: 2
 # EOF
 
-# minikube kubectl -- patch clusterpolicies.nvidia.com/cluster-policy \
-#     -n gpu-operator --type merge \
-#     -p '{"spec": {"devicePlugin": {"config": {"name": "oversub-all-2", "default": "any"}}}}'
+minikube kubectl -- patch clusterpolicies.nvidia.com/cluster-policy \
+    -n gpu-operator --type merge \
+   -p '{"spec": {"devicePlugin": {"config": {"name": "oversub-all-2", "default": "any"}}}}'
 
 minikube kubectl -- describe nodes | grep nvidia
 

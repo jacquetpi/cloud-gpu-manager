@@ -38,6 +38,7 @@ def setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper, gpu_count):
 
             # IV) Clean up
             kubectl_wrapper.destroy_all_pods()
+            time.sleep(10)
 
 if __name__ == "__main__":
 

@@ -81,6 +81,7 @@ data:
         return None
 
     def launch_pods(self, num_pods: int, image: str = "gpu_burn", command: list = ["./gpu_burn", "-d", "3600"], namespace: str = "default"):
+        if num_pods <= 0: return
         pod_yaml = ""
         for i in range(num_pods):
             pod_name = f"gpu-burn-{i}"
