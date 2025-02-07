@@ -5,19 +5,39 @@ from workloads import *
 import sys, time, re
 
 #########################
-# Create MIG instances  #
+# Setup Replicas policy #
 #########################
-def setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper):
-    kubectl_wrapper.set_kube_replicas_policy(3, config_name="oversub-all-3")
-    kubectl_wrapper.patch_cluster_policy(config_name="oversub-all-3")
-    while(True):
-        current_value = kubectl_wrapper.get_current_oversub_policy()
-        if current_value == 3: break
-        time.sleep(1)   
-    print("Current oversub policy:", kubectl_wrapper.get_current_oversub_policy())
-    print("GPU instance count:", kubectl_wrapper.get_gpu_instance_count())
-    kubectl_wrapper.launch_pods(kubectl_wrapper.get_gpu_instance_count())
-    kubectl_wrapper.destroy_all_pods()
+def setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper, gpu_count):
+
+    oversub_list = [1,2,4,8]
+    for oversub in oversub_list:
+
+        # I) Setup oversubscription policy
+        kubectl_wrapper.set_kube_replicas_policy(3, config_name="oversub-all-" + str(oversub))
+        kubectl_wrapper.patch_cluster_policy(config_name="oversub-all-3" + str(oversub))
+        while(True):
+            current_value = kubectl_wrapper.get_current_oversub_policy()
+            if current_value == 3: break
+            time.sleep(1)
+
+        print("Current oversub policy:", kubectl_wrapper.get_current_oversub_policy())
+        print("GPU instance count:", kubectl_wrapper.get_gpu_instance_count())
+
+        # II) Iterate through different number of pods
+        for instance_per_gpu in range(oversub+1):
+
+            wanted_instance = instance_per_gpu * gpu_count
+
+            # III) Update monitoring
+            setting_name = str(oversub) + '|' + str(instance_per_gpu)
+            monitors_wrapper.update_monitoring({'context': setting_name}, monitor_index=0, reset_launch=True)
+            print(setting_name)
+
+            kubectl_wrapper.launch_pods(wanted_instance)
+            time.sleep(300)
+
+            # IV) Clean up
+            kubectl_wrapper.destroy_all_pods()
 
 if __name__ == "__main__":
 
@@ -57,7 +77,7 @@ if __name__ == "__main__":
         time.sleep(300)
         print('Idle capture ended')
 
-        setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper)
+        setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper, gpu_count)
 
     except KeyboardInterrupt:
         pass
