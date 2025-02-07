@@ -91,7 +91,7 @@ data:
                 capture_output=True
             )
 
-        pod_yaml += f"""---
+            pod_yaml += f"""---
 apiVersion: v1
 kind: Pod
 metadata:

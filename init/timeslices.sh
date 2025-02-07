@@ -27,26 +27,26 @@ minikube kubectl -- get po -A
 
 helm install --wait --generate-name -n gpu-operator --create-namespace nvidia/gpu-operator
 
-cat <<EOF | minikube kubectl -- create -n gpu-operator -f -
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: oversub-all-2
-data:
-  any: |-
-    version: v1
-    flags:
-      migStrategy: none
-    sharing:
-      timeSlicing:
-        resources:
-        - name: nvidia.com/gpu
-          replicas: 2
-EOF
+# cat <<EOF | minikube kubectl -- create -n gpu-operator -f -
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: oversub-all-2
+# data:
+#   any: |-
+#     version: v1
+#     flags:
+#       migStrategy: none
+#     sharing:
+#       timeSlicing:
+#         resources:
+#         - name: nvidia.com/gpu
+#           replicas: 2
+# EOF
 
-minikube kubectl -- patch clusterpolicies.nvidia.com/cluster-policy \
-    -n gpu-operator --type merge \
-    -p '{"spec": {"devicePlugin": {"config": {"name": "oversub-all-2", "default": "any"}}}}'
+# minikube kubectl -- patch clusterpolicies.nvidia.com/cluster-policy \
+#     -n gpu-operator --type merge \
+#     -p '{"spec": {"devicePlugin": {"config": {"name": "oversub-all-2", "default": "any"}}}}'
 
 minikube kubectl -- describe nodes | grep nvidia
 
@@ -56,6 +56,7 @@ docker build -t gpu_burn /home/pjacquet/gpu-burn
 
 sudo-g5k systemctl stop dcgm-exporter
 sleep 5
+docker run -d --gpus all --cap-add SYS_ADMIN --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.1-ubuntu22.04 dcgm-exporter --kubernetes-virtual-gpus
 docker run -d --gpus all --cap-add SYS_ADMIN --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.1-ubuntu22.04 dcgm-exporter --kubernetes-virtual-gpus
 
 # Debug
