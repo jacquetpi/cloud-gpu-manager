@@ -9,6 +9,8 @@ import sys, time, re
 #########################
 def setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper, gpu_count):
 
+    kubectl_wrapper.destroy_all_pods()
+
     oversub_list = [1,2,4,8] # 1 must be first
     for oversub in oversub_list:
 

@@ -27,6 +27,25 @@ minikube kubectl -- get po -A
 
 helm install --wait --generate-name -n gpu-operator --create-namespace nvidia/gpu-operator
 
+eval $(minikube docker-env)
+docker build -t gpu_burn /home/pjacquet/gpu-burn
+#minikube image load gpu_burn
+
+sudo-g5k systemctl stop dcgm-exporter
+sleep 5
+docker run -d --gpus all --cap-add SYS_ADMIN --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.1-ubuntu22.04 dcgm-exporter --kubernetes-virtual-gpus
+docker run -d --gpus all --cap-add SYS_ADMIN --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.1-ubuntu22.04 dcgm-exporter --kubernetes-virtual-gpus
+
+minikube kubectl -- apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+minikube kubectl -- patch deployment metrics-server -n kube-system --type='json' -p='[
+  {"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"},
+  {"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-preferred-address-types=InternalIP"}
+]'
+minikube kubectl -- delete pod -n kube-system -l k8s-app=metrics-server
+
+# Debug
+# minikube kubectl -- get clusterpolicies.nvidia.com/cluster-policy   -n gpu-operator -o yaml
+
 # cat <<EOF | minikube kubectl -- create -n gpu-operator -f -
 # apiVersion: v1
 # kind: ConfigMap
@@ -44,23 +63,9 @@ helm install --wait --generate-name -n gpu-operator --create-namespace nvidia/gp
 #           replicas: 2
 # EOF
 
-minikube kubectl -- patch clusterpolicies.nvidia.com/cluster-policy \
-    -n gpu-operator --type merge \
-   -p '{"spec": {"devicePlugin": {"config": {"name": "oversub-all-2", "default": "any"}}}}'
-
-minikube kubectl -- describe nodes | grep nvidia
-
-eval $(minikube docker-env)
-docker build -t gpu_burn /home/pjacquet/gpu-burn
-#minikube image load gpu_burn
-
-sudo-g5k systemctl stop dcgm-exporter
-sleep 5
-docker run -d --gpus all --cap-add SYS_ADMIN --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.1-ubuntu22.04 dcgm-exporter --kubernetes-virtual-gpus
-docker run -d --gpus all --cap-add SYS_ADMIN --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.1-ubuntu22.04 dcgm-exporter --kubernetes-virtual-gpus
-
-# Debug
-# minikube kubectl -- get clusterpolicies.nvidia.com/cluster-policy   -n gpu-operator -o yaml
+# minikube kubectl -- patch clusterpolicies.nvidia.com/cluster-policy \
+#     -n gpu-operator --type merge \
+#    -p '{"spec": {"devicePlugin": {"config": {"name": "oversub-all-2", "default": "any"}}}}'
 
 # Test some images
 # minikube kubectl create deployment hello-minikube --image=kicbase/echo-server:1.0

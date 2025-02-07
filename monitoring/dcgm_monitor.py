@@ -42,7 +42,7 @@ class DCGMMonitor(MonitorAgent):
                             if len(splitted_val) == 2:
                                 key, val = splitted_val
                                 label_dict[key.strip()] = val.strip('"')
-                            else: print('DCGM monitoring: Something weird with line', line)
+                            else: pass # Probably an error message, print('DCGM monitoring: Something weird with line', line)
 
                     if label_dict:
                         domain = 'GPU' + str(label_dict["gpu"])
