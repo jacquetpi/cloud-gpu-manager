@@ -4,6 +4,8 @@ from workloads import *
 
 import sys, time, re
 
+DELAY=300
+
 #########################
 # Setup Replicas policy #
 #########################
@@ -35,8 +37,8 @@ def setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper, gpu_count):
             monitors_wrapper.update_monitoring({'context': setting_name}, monitor_index=0, reset_launch=True)
             print(setting_name)
 
-            kubectl_wrapper.launch_pods(wanted_instance)
-            time.sleep(300)
+            kubectl_wrapper.launch_pods(num_pods=wanted_instance, command=["./gpu_burn", "-m", "10%", str(DELAY)])
+            time.sleep(DELAY + 10)
 
             # IV) Clean up
             kubectl_wrapper.destroy_all_pods()
@@ -77,7 +79,7 @@ if __name__ == "__main__":
 
         print('Capturing idle')
         monitors_wrapper.update_monitoring({'context':'idle'}, monitor_index=0, reset_launch=False)
-        time.sleep(300)
+        time.sleep(DELAY)
         print('Idle capture ended')
 
         setup_namespace_and_launch(kubectl_wrapper, monitors_wrapper, gpu_count)

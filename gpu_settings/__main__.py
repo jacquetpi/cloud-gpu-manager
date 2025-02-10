@@ -1,7 +1,12 @@
 from .mig_wrapper import MIGWrapper
+from .kubectl_wrapper import KubectlWrapper
 import sys
 
 if __name__ == '__main__':
+
+    kubectl_wrapper = KubectlWrapper()
+    kubectl_wrapper.launch_pods(4)
+    sys.exit(0)
 
     mig_wrapper = MIGWrapper(sudo_command='sudo-g5k')
 
